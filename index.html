@@ -24,26 +24,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
 
+    // Load existing messages from local storage
+    loadMessages();
+
+    // Send message when the button is clicked
     sendButton.addEventListener('click', sendMessage);
+
+    // Send message when Enter key is pressed
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             sendMessage();
         }
     });
 
+    // Check for new messages every second
+    setInterval(loadMessages, 1000);
+
     function sendMessage() {
         const messageText = messageInput.value.trim();
         if (messageText !== '') {
+            // Create a new message object
+            const message = {
+                user: 'Anonymous',
+                text: messageText,
+                timestamp: new Date().getTime(),
+            };
+
+            // Save the message to local storage
+            saveMessage(message);
+
+            // Clear the input field
+            messageInput.value = '';
+
+            // Reload messages to display the new one
+            loadMessages();
+        }
+    }
+
+    function saveMessage(message) {
+        // Get existing messages from local storage
+        const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+
+        // Add the new message
+        messages.push(message);
+
+        // Save back to local storage
+        localStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+
+    function loadMessages() {
+        // Get messages from local storage
+        const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+
+        // Clear the chat box
+        chatBox.innerHTML = '';
+
+        // Display each message
+        messages.forEach((message) => {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
             messageElement.innerHTML = `
-                <span class="user">Anonymous:</span>
-                <span class="text">${messageText}</span>
+                <span class="user">${message.user}:</span>
+                <span class="text">${message.text}</span>
             `;
             chatBox.appendChild(messageElement);
-            messageInput.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the latest message
-        }
+        });
+
+        // Auto-scroll to the latest message
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 });
         
